@@ -6,7 +6,7 @@ import android.support.v7.app.AppCompatActivity;
 /**
  * @author Dusan Bartos
  */
-public class AutoBundlerActivity extends AppCompatActivity {
+public abstract class AutoBundlerActivity extends AppCompatActivity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {

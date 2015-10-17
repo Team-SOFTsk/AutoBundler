@@ -6,7 +6,7 @@ import android.support.v4.app.Fragment;
 /**
  * @author Dusan Bartos
  */
-public class AutoBundlerFragment extends Fragment {
+public abstract class AutoBundlerFragment extends Fragment {
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
