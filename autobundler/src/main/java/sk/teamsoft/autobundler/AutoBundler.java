@@ -12,11 +12,14 @@ import sk.teamsoft.autobundler.handlers.BundleHandler;
 import sk.teamsoft.autobundler.handlers.ByteHandler;
 import sk.teamsoft.autobundler.handlers.CharHandler;
 import sk.teamsoft.autobundler.handlers.DoubleHandler;
+import sk.teamsoft.autobundler.handlers.FloatHandler;
 import sk.teamsoft.autobundler.handlers.IFieldHandler;
 import sk.teamsoft.autobundler.handlers.IntegerHandler;
 import sk.teamsoft.autobundler.handlers.LongHandler;
+import sk.teamsoft.autobundler.handlers.ParcelableArrayHandler;
 import sk.teamsoft.autobundler.handlers.ParcelableHandler;
 import sk.teamsoft.autobundler.handlers.SerializableHandler;
+import sk.teamsoft.autobundler.handlers.StringArrayHandler;
 import sk.teamsoft.autobundler.handlers.StringHandler;
 
 /**
@@ -60,10 +63,14 @@ public class AutoBundler {
     private static IFieldHandler getTypeHandler(final Field iField, final Object iObject)
             throws IllegalAccessException {
         if (String.class.isAssignableFrom(iField.getType())) return new StringHandler();
+        if (String[].class.isAssignableFrom(iField.getType())) return new StringArrayHandler();
+//        if (ArrayList<String>.class.isAssignableFrom(iField.getType())) return new StringArrayListHandler();
         if (int.class.isAssignableFrom(iField.getType())) return new IntegerHandler();
         if (Integer.class.isAssignableFrom(iField.getType())) return new IntegerHandler();
         if (double.class.isAssignableFrom(iField.getType())) return new DoubleHandler();
         if (Double.class.isAssignableFrom(iField.getType())) return new DoubleHandler();
+        if (float.class.isAssignableFrom(iField.getType())) return new FloatHandler();
+        if (Float.class.isAssignableFrom(iField.getType())) return new FloatHandler();
         if (boolean.class.isAssignableFrom(iField.getType())) return new BooleanHandler();
         if (Boolean.class.isAssignableFrom(iField.getType())) return new BooleanHandler();
         if (long.class.isAssignableFrom(iField.getType())) return new LongHandler();
@@ -75,6 +82,7 @@ public class AutoBundler {
         if (Bundle.class.isAssignableFrom(iField.getType())) return new BundleHandler();
         if (Serializable.class.isAssignableFrom(iField.getType())) return new SerializableHandler();
         if (Parcelable.class.isAssignableFrom(iField.getType())) return new ParcelableHandler();
+        if (Parcelable[].class.isAssignableFrom(iField.getType())) return new ParcelableArrayHandler();
 
         //TODO more handlers (arrays, arraylists, ...)
 
