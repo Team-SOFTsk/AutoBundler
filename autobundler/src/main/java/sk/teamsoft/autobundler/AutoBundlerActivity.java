@@ -1,12 +1,11 @@
 package sk.teamsoft.autobundler;
 
 import android.os.Bundle;
-import android.support.v7.app.AppCompatActivity;
 
 /**
  * @author Dusan Bartos
  */
-public abstract class AutoBundlerActivity extends AppCompatActivity {
+public abstract class AutoBundlerActivity extends android.support.v7.app.AppCompatActivity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {

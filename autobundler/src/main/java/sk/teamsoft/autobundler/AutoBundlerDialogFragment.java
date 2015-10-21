@@ -1,12 +1,12 @@
 package sk.teamsoft.autobundler;
 
 import android.os.Bundle;
-import android.support.v4.app.DialogFragment;
 
 /**
  * @author Dusan Bartos
  */
-public abstract class AutoBundlerDialogFragment extends DialogFragment {
+//TODO possible to remove since it extends Fragment
+public abstract class AutoBundlerDialogFragment extends android.support.v4.app.DialogFragment {
 
     @Override
     public void onCreate(Bundle savedInstanceState) {

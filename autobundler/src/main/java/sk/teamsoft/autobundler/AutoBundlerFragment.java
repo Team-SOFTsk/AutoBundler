@@ -1,12 +1,11 @@
 package sk.teamsoft.autobundler;
 
 import android.os.Bundle;
-import android.support.v4.app.Fragment;
 
 /**
  * @author Dusan Bartos
  */
-public abstract class AutoBundlerFragment extends Fragment {
+public abstract class AutoBundlerFragment extends android.support.v4.app.Fragment {
 
     @Override
     public void onCreate(Bundle savedInstanceState) {

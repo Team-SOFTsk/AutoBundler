@@ -1,5 +1,32 @@
 apply plugin: 'com.android.library'
 
+final LIBRARY_NAME = 'autobundler'
+
+ext {
+    bintrayRepo = 'maven'
+    bintrayName = LIBRARY_NAME
+    bintrayOrg = ORGANIZATION_NAME
+
+    publishedGroupId = GROUP
+    libraryName = LIBRARY_NAME
+    artifact = POM_ARTIFACT_ID
+
+    libraryDescription = POM_DESCRIPTION
+
+    siteUrl = POM_SCM_URL
+    gitUrl = POM_SCM_CONNECTION
+
+    libraryVersion = VERSION_NAME
+
+    developerId = POM_DEVELOPER_ID
+    developerName = POM_DEVELOPER_NAME
+    developerEmail = POM_DEVELOPER_EMAIL
+
+    licenseName = POM_LICENCE_NAME
+    licenseUrl = POM_LICENCE_URL
+    allLicenses = ["Apache-2.0"]
+}
+
 android {
     compileSdkVersion 23
     buildToolsVersion "23.0.1"
@@ -7,18 +34,38 @@ android {
     defaultConfig {
         minSdkVersion 8
         targetSdkVersion 23
-        versionName "1.0"
+        versionName VERSION_NAME
     }
     buildTypes {
         release {
-            minifyEnabled false
+            minifyEnabled true
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }
     }
 }
 
+/**
+ * Copies aar file to library folder
+ */
+task copyLibraryFile(type: Copy) {
+    from "${buildDir}/outputs/aar/${project.name}-release.aar"
+    into "${rootDir}/library-apk/"
+    rename ("${project.name}-release.aar", "${project.name}-${android.defaultConfig.versionName}.aar")
+}
+
+/**
+ * builds library .aar file and copies it to library folder
+ */
+task buildLibrary(dependsOn: ['assemble', 'copyLibraryFile']) {
+}
+
 dependencies {
     testCompile 'junit:junit:4.12'
+    compile 'com.android.support:support-v4:23.1.0'
+    compile 'com.android.support:support-annotations:23.1.0'
     compile 'com.android.support:appcompat-v7:23.1.0'
     compile 'org.reflections:reflections:0.9.10'
 }
+
+apply from: '../install.gradle'
+apply from: '../bintray.gradle'
