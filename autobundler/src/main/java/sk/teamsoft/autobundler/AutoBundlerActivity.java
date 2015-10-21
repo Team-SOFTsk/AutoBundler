@@ -12,7 +12,7 @@ public abstract class AutoBundlerActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         if (savedInstanceState != null) {
-            AutoBundler.restore(this, savedInstanceState);
+            AutoBundler.restore(this, savedInstanceState, AutoBundler.MODE_ONCREATE);
         }
     }
 
@@ -22,9 +22,9 @@ public abstract class AutoBundlerActivity extends AppCompatActivity {
         super.onSaveInstanceState(outState);
     }
 
-    /*@Override
+    @Override
     protected void onRestoreInstanceState(Bundle savedInstanceState) {
         super.onRestoreInstanceState(savedInstanceState);
-        AutoBundler.restore(this, savedInstanceState);
-    }*/
+        AutoBundler.restore(this, savedInstanceState, AutoBundler.MODE_ONRESTORE);
+    }
 }

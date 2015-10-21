@@ -12,7 +12,7 @@ public abstract class AutoBundlerDialogFragment extends DialogFragment {
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         if (savedInstanceState != null) {
-            AutoBundler.restore(this, savedInstanceState);
+            AutoBundler.restore(this, savedInstanceState, AutoBundler.MODE_ONCREATE);
         }
     }
 
@@ -22,9 +22,9 @@ public abstract class AutoBundlerDialogFragment extends DialogFragment {
         super.onSaveInstanceState(outState);
     }
 
-    /*@Override
+    @Override
     public void onViewStateRestored(Bundle savedInstanceState) {
         super.onViewStateRestored(savedInstanceState);
-        AutoBundler.restore(this, savedInstanceState);
-    }*/
+        AutoBundler.restore(this, savedInstanceState, AutoBundler.MODE_ONRESTORE);
+    }
 }

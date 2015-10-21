@@ -7,10 +7,12 @@ import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
 import android.support.v7.widget.Toolbar;
 import android.view.View;
+import android.widget.EditText;
 
 import java.lang.reflect.Field;
 import java.util.ArrayList;
 
+import sk.teamsoft.autobundler.AutoBundler;
 import sk.teamsoft.autobundler.AutoBundlerActivity;
 import sk.teamsoft.autobundler.KeepState;
 import sk.teamsoft.autobundler.handlers.IFieldHandler;
@@ -29,12 +31,15 @@ public class MainActivity extends AutoBundlerActivity {
     CustomObject mCustom;
     @KeepState
     ArrayList<String> mArray;
+    @KeepState(mode = AutoBundler.MODE_ONRESTORE)
+    EditText mEdittext;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
+        mEdittext = (EditText) findViewById(R.id.edittext);
         setSupportActionBar(toolbar);
 
         if (savedInstanceState == null) {
@@ -98,7 +103,8 @@ public class MainActivity extends AutoBundlerActivity {
         String data;
 
         //need this because of automatic instantiation within autobundler
-        public CustomObject() {}
+        public CustomObject() {
+        }
 
         CustomObject(String data) {
             this.data = data;

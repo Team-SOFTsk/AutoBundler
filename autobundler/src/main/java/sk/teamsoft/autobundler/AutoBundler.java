@@ -3,6 +3,7 @@ package sk.teamsoft.autobundler;
 import android.os.Bundle;
 import android.os.Parcelable;
 import android.util.Log;
+import android.widget.EditText;
 
 import java.io.Serializable;
 import java.lang.reflect.Field;
@@ -14,6 +15,7 @@ import sk.teamsoft.autobundler.handlers.CharHandler;
 import sk.teamsoft.autobundler.handlers.CharSequenceArrayHandler;
 import sk.teamsoft.autobundler.handlers.CharSequenceHandler;
 import sk.teamsoft.autobundler.handlers.DoubleHandler;
+import sk.teamsoft.autobundler.handlers.EditTextHandler;
 import sk.teamsoft.autobundler.handlers.FloatHandler;
 import sk.teamsoft.autobundler.handlers.IFieldHandler;
 import sk.teamsoft.autobundler.handlers.IntegerArrayHandler;
@@ -30,6 +32,9 @@ import sk.teamsoft.autobundler.handlers.StringHandler;
  */
 public class AutoBundler {
     private static final String TAG = AutoBundler.class.getSimpleName();
+
+    public static final int MODE_ONCREATE = 1;
+    public static final int MODE_ONRESTORE = 2;
 
     private static AutoBundler sInstance;
     private static IFieldHandler sEmptyHandler;
@@ -50,8 +55,8 @@ public class AutoBundler {
      * @param component
      * @param savedInstanceState
      */
-    protected static void restore(Object component, Bundle savedInstanceState) {
-        getInstance().internalRestore(component, savedInstanceState);
+    protected static void restore(Object component, Bundle savedInstanceState, @RestoreMode int mode) {
+        getInstance().internalRestore(component, savedInstanceState, mode);
     }
 
     /**
@@ -84,20 +89,24 @@ public class AutoBundler {
     /**
      * @param component
      * @param savedInstanceState
+     * @param restoreMode
      */
-    void internalRestore(Object component, Bundle savedInstanceState) {
+    void internalRestore(Object component, Bundle savedInstanceState, @RestoreMode int restoreMode) {
         for (Field field : component.getClass().getDeclaredFields()) {
             if (field.isAnnotationPresent(KeepState.class)) {
-                boolean wasAccessible = field.isAccessible();
-                field.setAccessible(true);
-                try {
-                    getTypeHandler(field, component).readValue(field, component, savedInstanceState);
-                } catch (IllegalAccessException e) {
-                    e.printStackTrace();
-                    Log.e(TAG, "Cannot access field " + field.getName());
-                }
-                if (!wasAccessible) {
-                    field.setAccessible(false);
+                KeepState annotation = field.getAnnotation(KeepState.class);
+                if (annotation.mode() == restoreMode) {
+                    boolean wasAccessible = field.isAccessible();
+                    field.setAccessible(true);
+                    try {
+                        getTypeHandler(field, component).readValue(field, component, savedInstanceState);
+                    } catch (IllegalAccessException e) {
+                        e.printStackTrace();
+                        Log.e(TAG, "Cannot access field " + field.getName());
+                    }
+                    if (!wasAccessible) {
+                        field.setAccessible(false);
+                    }
                 }
             }
         }
@@ -199,6 +208,9 @@ public class AutoBundler {
                 }
             }
         };
+
+        // handles EditText and AppcompatEditText
+        if (EditText.class.isAssignableFrom(iField.getType())) return new EditTextHandler();
 
         Log.w(TAG, "Handler for type " + iField.getType().getSimpleName() + " not found");
         return sEmptyHandler;
