@@ -1,6 +1,9 @@
 # AutoBundler
 Android AutoBundler library
 
+[ ![Download](https://api.bintray.com/packages/doodeec/maven/server-communicator/images/download.svg) ](https://bintray.com/team-softsk/maven/autobundler/_latestVersion)
+[![Maven Central](https://maven-badges.herokuapp.com/maven-central/com.doodeec.utils/serverCommunicator/badge.svg)](https://maven-badges.herokuapp.com/maven-central/sk.teamsoft/autobundler)
+
 ### Description
 AutoBundler is a library for Android applications, which removes boilerplate code from your
 activities and fragments. The library handles typical actions with saving instance state.
