@@ -13,12 +13,12 @@ public class SerializableHandler implements IFieldHandler {
     @Override
     public void storeValue(Field field, Object object, Bundle bundle) throws IllegalAccessException {
         bundle.putSerializable(field.getName(), (Serializable) field.get(object));
-        Log.d(getClass().getSimpleName(), "Field saved: " + field.getName());
+        Log.d(object.getClass().getSimpleName(), "Field saved: " + field.getName() + " (" + getClass().getSimpleName() + ")");
     }
 
     @Override
     public void readValue(Field field, Object object, Bundle bundle) throws IllegalAccessException {
         field.set(object, bundle.getSerializable(field.getName()));
-        Log.d(getClass().getSimpleName(), "Field restored: " + field.getName());
+        Log.d(object.getClass().getSimpleName(), "Field restored: " + field.getName() + " (" + getClass().getSimpleName() + ")");
     }
 }

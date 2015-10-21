@@ -11,9 +11,12 @@ import sk.teamsoft.autobundler.handlers.BooleanHandler;
 import sk.teamsoft.autobundler.handlers.BundleHandler;
 import sk.teamsoft.autobundler.handlers.ByteHandler;
 import sk.teamsoft.autobundler.handlers.CharHandler;
+import sk.teamsoft.autobundler.handlers.CharSequenceArrayHandler;
+import sk.teamsoft.autobundler.handlers.CharSequenceHandler;
 import sk.teamsoft.autobundler.handlers.DoubleHandler;
 import sk.teamsoft.autobundler.handlers.FloatHandler;
 import sk.teamsoft.autobundler.handlers.IFieldHandler;
+import sk.teamsoft.autobundler.handlers.IntegerArrayHandler;
 import sk.teamsoft.autobundler.handlers.IntegerHandler;
 import sk.teamsoft.autobundler.handlers.LongHandler;
 import sk.teamsoft.autobundler.handlers.ParcelableArrayHandler;
@@ -28,9 +31,64 @@ import sk.teamsoft.autobundler.handlers.StringHandler;
 public class AutoBundler {
     private static final String TAG = AutoBundler.class.getSimpleName();
 
+    private static AutoBundler sInstance;
+    private static IFieldHandler sEmptyHandler;
+
+    static {
+        sEmptyHandler = new IFieldHandler() {
+            @Override
+            public void storeValue(Field field, Object object, Bundle bundle) throws IllegalAccessException {
+            }
+
+            @Override
+            public void readValue(Field field, Object object, Bundle bundle) throws IllegalAccessException {
+            }
+        };
+    }
+
+    /**
+     * @param component
+     * @param savedInstanceState
+     */
     protected static void restore(Object component, Bundle savedInstanceState) {
+        getInstance().internalRestore(component, savedInstanceState);
+    }
+
+    /**
+     * @param component
+     * @param outState
+     */
+    protected static void save(Object component, Bundle outState) {
+        getInstance().internalSave(component, outState);
+    }
+
+    /**
+     * Gets singleton instance
+     *
+     * @return singleton
+     */
+    static AutoBundler getInstance() {
+        if (sInstance == null) {
+            synchronized (AutoBundler.class) {
+                if (sInstance == null) {
+                    sInstance = new AutoBundler();
+                }
+            }
+        }
+        return sInstance;
+    }
+
+    AutoBundler() {
+    }
+
+    /**
+     * @param component
+     * @param savedInstanceState
+     */
+    void internalRestore(Object component, Bundle savedInstanceState) {
         for (Field field : component.getClass().getDeclaredFields()) {
             if (field.isAnnotationPresent(KeepState.class)) {
+                boolean wasAccessible = field.isAccessible();
                 field.setAccessible(true);
                 try {
                     getTypeHandler(field, component).readValue(field, component, savedInstanceState);
@@ -38,11 +96,18 @@ public class AutoBundler {
                     e.printStackTrace();
                     Log.e(TAG, "Cannot access field " + field.getName());
                 }
+                if (!wasAccessible) {
+                    field.setAccessible(false);
+                }
             }
         }
     }
 
-    protected static void save(Object component, Bundle outState) {
+    /**
+     * @param component
+     * @param outState
+     */
+    void internalSave(Object component, Bundle outState) {
         for (Field field : component.getClass().getDeclaredFields()) {
             if (field.isAnnotationPresent(KeepState.class)) {
                 boolean wasAccessible = field.isAccessible();
@@ -60,13 +125,25 @@ public class AutoBundler {
         }
     }
 
-    private static IFieldHandler getTypeHandler(final Field iField, final Object iObject)
+    /**
+     * @param iField  field
+     * @param iObject component instance
+     *
+     * @return bundle handler for exact type
+     *
+     * @throws IllegalAccessException
+     */
+    private IFieldHandler getTypeHandler(final Field iField, final Object iObject)
             throws IllegalAccessException {
+        if (CharSequence.class.isAssignableFrom(iField.getType())) return new CharSequenceHandler();
+        if (CharSequence[].class.isAssignableFrom(iField.getType()))
+            return new CharSequenceArrayHandler();
         if (String.class.isAssignableFrom(iField.getType())) return new StringHandler();
         if (String[].class.isAssignableFrom(iField.getType())) return new StringArrayHandler();
-//        if (ArrayList<String>.class.isAssignableFrom(iField.getType())) return new StringArrayListHandler();
         if (int.class.isAssignableFrom(iField.getType())) return new IntegerHandler();
         if (Integer.class.isAssignableFrom(iField.getType())) return new IntegerHandler();
+        if (int[].class.isAssignableFrom(iField.getType())) return new IntegerArrayHandler();
+        if (Integer[].class.isAssignableFrom(iField.getType())) return new IntegerArrayHandler();
         if (double.class.isAssignableFrom(iField.getType())) return new DoubleHandler();
         if (Double.class.isAssignableFrom(iField.getType())) return new DoubleHandler();
         if (float.class.isAssignableFrom(iField.getType())) return new FloatHandler();
@@ -80,47 +157,50 @@ public class AutoBundler {
         if (byte.class.isAssignableFrom(iField.getType())) return new ByteHandler();
         if (Byte.class.isAssignableFrom(iField.getType())) return new ByteHandler();
         if (Bundle.class.isAssignableFrom(iField.getType())) return new BundleHandler();
-        if (Serializable.class.isAssignableFrom(iField.getType())) return new SerializableHandler();
         if (Parcelable.class.isAssignableFrom(iField.getType())) return new ParcelableHandler();
-        if (Parcelable[].class.isAssignableFrom(iField.getType())) return new ParcelableArrayHandler();
+        if (Parcelable[].class.isAssignableFrom(iField.getType()))
+            return new ParcelableArrayHandler();
 
-        //TODO more handlers (arrays, arraylists, ...)
+        // handles also arrayLists since arraylist implements Serializable
+        if (Serializable.class.isAssignableFrom(iField.getType())) return new SerializableHandler();
+
+        //TODO more handlers
 
         if (IFieldHandler.class.isAssignableFrom(iField.getType())) return new IFieldHandler() {
             @Override
             public void storeValue(Field field, Object object, Bundle bundle)
                     throws IllegalAccessException {
+                boolean wasAccessible = iField.isAccessible();
                 iField.setAccessible(true);
                 ((IFieldHandler) iField.get(iObject)).storeValue(field, object, bundle);
-                Log.d(iField.getType().getSimpleName(), "Field saved: " + iField.getName());
+                Log.d(iObject.getClass().getSimpleName(), "Field saved: " + iField.getName());
+                if (!wasAccessible) {
+                    iField.setAccessible(false);
+                }
             }
 
             @Override
             public void readValue(Field field, Object object, Bundle bundle)
                     throws IllegalAccessException {
+                boolean wasAccessible = iField.isAccessible();
+                iField.setAccessible(true);
                 try {
-                    iField.setAccessible(true);
                     Object iFieldHandler = iField.getType().newInstance();
                     ((IFieldHandler) iFieldHandler).readValue(field, object, bundle);
                     iField.set(iObject, iFieldHandler);
-                    Log.d(iField.getType().getSimpleName(), "Field restored: " + iField.getName());
+                    Log.d(iObject.getClass().getSimpleName(), "Field restored: " + iField.getName());
                 } catch (InstantiationException e) {
                     e.printStackTrace();
-                    Log.e(iField.getType().getSimpleName(), "Cannot instantiate - " + e.getMessage());
+                    Log.e(iObject.getClass().getSimpleName(), "Cannot instantiate - " + e.getMessage());
+                }
+
+                if (!wasAccessible) {
+                    iField.setAccessible(false);
                 }
             }
         };
-//            return (IFieldHandler) iField.get(iObject);
 
         Log.w(TAG, "Handler for type " + iField.getType().getSimpleName() + " not found");
-        return new IFieldHandler() {
-            @Override
-            public void storeValue(Field field, Object object, Bundle bundle) throws IllegalAccessException {
-            }
-
-            @Override
-            public void readValue(Field field, Object object, Bundle bundle) throws IllegalAccessException {
-            }
-        };
+        return sEmptyHandler;
     }
 }

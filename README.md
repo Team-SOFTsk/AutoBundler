@@ -7,8 +7,9 @@ activities and fragments. The library handles typical actions with saving instan
 So overriding `onSaveInstanceState` and `onRestoreInstanceState` is a history now.
 
 ### Usage
-All you need to do to make AutoBundler work, is to inherit from `AutoBundlerActivity` and 
-`AutoBundlerFragment` classes and add annotations to specified fields. That's all.
+All you need to do to make AutoBundler work, is to inherit from `AutoBundlerActivity`, 
+`AutoBundlerFragment` or `AutoBundlerDialogFragment` classes and add annotations to specified fields.
+That's all.
 
     public class MainActivity extends AutoBundlerActivity {
         @KeepState

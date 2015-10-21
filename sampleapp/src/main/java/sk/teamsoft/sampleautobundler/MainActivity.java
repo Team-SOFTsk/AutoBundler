@@ -9,6 +9,7 @@ import android.support.v7.widget.Toolbar;
 import android.view.View;
 
 import java.lang.reflect.Field;
+import java.util.ArrayList;
 
 import sk.teamsoft.autobundler.AutoBundlerActivity;
 import sk.teamsoft.autobundler.KeepState;
@@ -26,6 +27,8 @@ public class MainActivity extends AutoBundlerActivity {
     DataObject mParcel;
     @KeepState
     CustomObject mCustom;
+    @KeepState
+    ArrayList<String> mArray;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -40,6 +43,9 @@ public class MainActivity extends AutoBundlerActivity {
             mValue = 15.5555;
             mParcel = new DataObject(15);
             mCustom = new CustomObject("datadata");
+            mArray = new ArrayList<>();
+            mArray.add("First");
+            mArray.add("Second");
         }
 
         FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
@@ -91,6 +97,7 @@ public class MainActivity extends AutoBundlerActivity {
 
         String data;
 
+        //need this because of automatic instantiation within autobundler
         public CustomObject() {}
 
         CustomObject(String data) {
