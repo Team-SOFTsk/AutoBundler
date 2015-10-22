@@ -15,7 +15,7 @@ public class EditTextHandler implements IFieldHandler {
         EditText editText = ((EditText) field.get(object));
 
         if (editText != null) {
-            bundle.putString(field.getName(), ((EditText) field.get(object)).getText().toString());
+            bundle.putString(field.getName(), editText.getText().toString());
             Log.d(object.getClass().getSimpleName(), "Field saved: " + field.getName() + " (" + getClass().getSimpleName() + ")");
         } else {
             Log.e(object.getClass().getSimpleName(), "Field is null: " + field.getName());

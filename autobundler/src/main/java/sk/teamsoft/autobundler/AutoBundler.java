@@ -92,6 +92,8 @@ public class AutoBundler {
      * @param restoreMode
      */
     void internalRestore(Object component, Bundle savedInstanceState, @RestoreMode int restoreMode) {
+        if (savedInstanceState == null) return;
+
         for (Field field : component.getClass().getDeclaredFields()) {
             if (field.isAnnotationPresent(KeepState.class)) {
                 KeepState annotation = field.getAnnotation(KeepState.class);
@@ -117,6 +119,8 @@ public class AutoBundler {
      * @param outState
      */
     void internalSave(Object component, Bundle outState) {
+        if (outState == null) return;
+
         for (Field field : component.getClass().getDeclaredFields()) {
             if (field.isAnnotationPresent(KeepState.class)) {
                 boolean wasAccessible = field.isAccessible();
