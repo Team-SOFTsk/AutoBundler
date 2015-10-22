@@ -1,11 +1,11 @@
 package sk.teamsoft.autobundler;
 
 import android.os.Bundle;
+import android.view.View;
 
 /**
  * @author Dusan Bartos
  */
-//TODO possible to remove since it extends Fragment
 public abstract class AutoBundlerDialogFragment extends android.support.v4.app.DialogFragment {
 
     @Override
@@ -23,8 +23,8 @@ public abstract class AutoBundlerDialogFragment extends android.support.v4.app.D
     }
 
     @Override
-    public void onViewStateRestored(Bundle savedInstanceState) {
-        super.onViewStateRestored(savedInstanceState);
+    public void onViewCreated(View view, Bundle savedInstanceState) {
+        super.onViewCreated(view, savedInstanceState);
         AutoBundler.restore(this, savedInstanceState, AutoBundler.MODE_ONRESTORE);
     }
 }

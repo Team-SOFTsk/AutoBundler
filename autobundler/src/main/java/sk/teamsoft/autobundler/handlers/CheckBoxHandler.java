@@ -2,24 +2,24 @@ package sk.teamsoft.autobundler.handlers;
 
 import android.os.Bundle;
 import android.util.Log;
-import android.widget.EditText;
+import android.widget.CheckBox;
 
 import java.lang.reflect.Field;
 
 import sk.teamsoft.autobundler.TSLog;
 
 /**
- * Handler for saving/restoring editText state (string value) to/from instanceState Bundle
+ * Handler for saving/restoring checkbox state to/from instanceState Bundle
  *
  * @author Dusan Bartos
  */
-public class EditTextHandler implements IFieldHandler {
+public class CheckBoxHandler implements IFieldHandler {
     @Override
     public void storeValue(Field field, Object object, Bundle bundle) throws IllegalAccessException {
-        EditText editText = ((EditText) field.get(object));
+        CheckBox checkBox = ((CheckBox) field.get(object));
 
-        if (editText != null) {
-            bundle.putString(field.getName(), editText.getText().toString());
+        if (checkBox != null) {
+            bundle.putBoolean(field.getName(), checkBox.isChecked());
             TSLog.d(object.getClass().getSimpleName(), "Field saved: " + field.getName() + " (" + getClass().getSimpleName() + ")");
         } else {
             Log.e(object.getClass().getSimpleName(), "Field is null: " + field.getName());
@@ -28,10 +28,10 @@ public class EditTextHandler implements IFieldHandler {
 
     @Override
     public void readValue(Field field, Object object, Bundle bundle) throws IllegalAccessException {
-        EditText editText = ((EditText) field.get(object));
+        CheckBox checkBox = ((CheckBox) field.get(object));
 
-        if (editText != null) {
-            editText.setText(bundle.getString(field.getName()));
+        if (checkBox != null) {
+            checkBox.setChecked(bundle.getBoolean(field.getName()));
             TSLog.d(object.getClass().getSimpleName(), "Field restored: " + field.getName() + " (" + getClass().getSimpleName() + ")");
         } else {
             Log.e(object.getClass().getSimpleName(), "Field is null: " + field.getName());

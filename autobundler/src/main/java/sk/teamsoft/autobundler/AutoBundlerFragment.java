@@ -1,6 +1,7 @@
 package sk.teamsoft.autobundler;
 
 import android.os.Bundle;
+import android.view.View;
 
 /**
  * @author Dusan Bartos
@@ -22,8 +23,8 @@ public abstract class AutoBundlerFragment extends android.support.v4.app.Fragmen
     }
 
     @Override
-    public void onViewStateRestored(Bundle savedInstanceState) {
-        super.onViewStateRestored(savedInstanceState);
+    public void onViewCreated(View view, Bundle savedInstanceState) {
+        super.onViewCreated(view, savedInstanceState);
         AutoBundler.restore(this, savedInstanceState, AutoBundler.MODE_ONRESTORE);
     }
 }

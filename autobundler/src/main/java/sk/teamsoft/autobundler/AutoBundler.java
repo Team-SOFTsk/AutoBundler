@@ -3,6 +3,7 @@ package sk.teamsoft.autobundler;
 import android.os.Bundle;
 import android.os.Parcelable;
 import android.util.Log;
+import android.widget.CheckBox;
 import android.widget.EditText;
 
 import java.io.Serializable;
@@ -14,6 +15,7 @@ import sk.teamsoft.autobundler.handlers.ByteHandler;
 import sk.teamsoft.autobundler.handlers.CharHandler;
 import sk.teamsoft.autobundler.handlers.CharSequenceArrayHandler;
 import sk.teamsoft.autobundler.handlers.CharSequenceHandler;
+import sk.teamsoft.autobundler.handlers.CheckBoxHandler;
 import sk.teamsoft.autobundler.handlers.DoubleHandler;
 import sk.teamsoft.autobundler.handlers.EditTextHandler;
 import sk.teamsoft.autobundler.handlers.FloatHandler;
@@ -40,6 +42,7 @@ public class AutoBundler {
     private static IFieldHandler sEmptyHandler;
 
     static {
+        TSLog.enableLog(false);
         sEmptyHandler = new IFieldHandler() {
             @Override
             public void storeValue(Field field, Object object, Bundle bundle) throws IllegalAccessException {
@@ -51,17 +54,22 @@ public class AutoBundler {
         };
     }
 
+    public static void enableDebug(boolean enable) {
+        TSLog.enableLog(enable);
+    }
+
     /**
-     * @param component
-     * @param savedInstanceState
+     * @param component          component instance
+     * @param savedInstanceState saved state
+     * @param mode               restore mode
      */
     protected static void restore(Object component, Bundle savedInstanceState, @RestoreMode int mode) {
         getInstance().internalRestore(component, savedInstanceState, mode);
     }
 
     /**
-     * @param component
-     * @param outState
+     * @param component component instance
+     * @param outState  state
      */
     protected static void save(Object component, Bundle outState) {
         getInstance().internalSave(component, outState);
@@ -87,9 +95,9 @@ public class AutoBundler {
     }
 
     /**
-     * @param component
-     * @param savedInstanceState
-     * @param restoreMode
+     * @param component          component instance
+     * @param savedInstanceState saved state
+     * @param restoreMode        restore mode
      */
     void internalRestore(Object component, Bundle savedInstanceState, @RestoreMode int restoreMode) {
         if (savedInstanceState == null) return;
@@ -115,8 +123,8 @@ public class AutoBundler {
     }
 
     /**
-     * @param component
-     * @param outState
+     * @param component component instance
+     * @param outState  state
      */
     void internalSave(Object component, Bundle outState) {
         if (outState == null) return;
@@ -174,7 +182,7 @@ public class AutoBundler {
         if (Parcelable[].class.isAssignableFrom(iField.getType()))
             return new ParcelableArrayHandler();
 
-        // handles also arrayLists since arraylist implements Serializable
+        // handles also arrayLists since arrayList implements Serializable
         if (Serializable.class.isAssignableFrom(iField.getType())) return new SerializableHandler();
 
         //TODO more handlers
@@ -186,7 +194,7 @@ public class AutoBundler {
                 boolean wasAccessible = iField.isAccessible();
                 iField.setAccessible(true);
                 ((IFieldHandler) iField.get(iObject)).storeValue(field, object, bundle);
-                Log.d(iObject.getClass().getSimpleName(), "Field saved: " + iField.getName());
+                TSLog.d(iObject.getClass().getSimpleName(), "Field saved: " + iField.getName());
                 if (!wasAccessible) {
                     iField.setAccessible(false);
                 }
@@ -201,7 +209,7 @@ public class AutoBundler {
                     Object iFieldHandler = iField.getType().newInstance();
                     ((IFieldHandler) iFieldHandler).readValue(field, object, bundle);
                     iField.set(iObject, iFieldHandler);
-                    Log.d(iObject.getClass().getSimpleName(), "Field restored: " + iField.getName());
+                    TSLog.d(iObject.getClass().getSimpleName(), "Field restored: " + iField.getName());
                 } catch (InstantiationException e) {
                     e.printStackTrace();
                     Log.e(iObject.getClass().getSimpleName(), "Cannot instantiate - " + e.getMessage());
@@ -215,6 +223,7 @@ public class AutoBundler {
 
         // handles EditText and AppcompatEditText
         if (EditText.class.isAssignableFrom(iField.getType())) return new EditTextHandler();
+        if (CheckBox.class.isAssignableFrom(iField.getType())) return new CheckBoxHandler();
 
         Log.w(TAG, "Handler for type " + iField.getType().getSimpleName() + " not found");
         return sEmptyHandler;
