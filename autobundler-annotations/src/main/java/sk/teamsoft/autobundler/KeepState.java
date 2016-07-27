@@ -11,5 +11,5 @@ import java.lang.annotation.Target;
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.FIELD)
 public @interface KeepState {
-    @RestoreMode int mode() default AutoBundler.MODE_ONCREATE;
+    @RestoreMode int mode() default AutoBundlerConfig.MODE_ONCREATE;
 }

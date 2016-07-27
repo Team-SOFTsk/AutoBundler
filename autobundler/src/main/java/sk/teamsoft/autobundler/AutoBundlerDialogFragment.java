@@ -12,7 +12,7 @@ public abstract class AutoBundlerDialogFragment extends android.support.v4.app.D
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         if (savedInstanceState != null) {
-            AutoBundler.restore(this, savedInstanceState, AutoBundler.MODE_ONCREATE);
+            AutoBundler.restore(this, savedInstanceState, AutoBundlerConfig.MODE_ONCREATE);
         }
     }
 
@@ -25,6 +25,6 @@ public abstract class AutoBundlerDialogFragment extends android.support.v4.app.D
     @Override
     public void onViewCreated(View view, Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
-        AutoBundler.restore(this, savedInstanceState, AutoBundler.MODE_ONRESTORE);
+        AutoBundler.restore(this, savedInstanceState, AutoBundlerConfig.MODE_ONRESTORE);
     }
 }

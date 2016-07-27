@@ -1,5 +1,7 @@
 package sk.teamsoft.autobundler;
 
+import android.app.Activity;
+import android.app.Application;
 import android.os.Bundle;
 import android.os.Parcelable;
 import android.util.Log;
@@ -32,17 +34,13 @@ import sk.teamsoft.autobundler.handlers.StringHandler;
 /**
  * @author Dusan Bartos
  */
-public class AutoBundler {
-    private static final String TAG = AutoBundler.class.getSimpleName();
-
-    public static final int MODE_ONCREATE = 1;
-    public static final int MODE_ONRESTORE = 2;
+public final class AutoBundler {
+    private static final String TAG = "AutoBundler";
 
     private static AutoBundler sInstance;
     private static IFieldHandler sEmptyHandler;
 
     static {
-        TSLog.enableLog(false);
         sEmptyHandler = new IFieldHandler() {
             @Override
             public void storeValue(Field field, Object object, Bundle bundle) throws IllegalAccessException {
@@ -54,8 +52,41 @@ public class AutoBundler {
         };
     }
 
-    public static void enableDebug(boolean enable) {
-        TSLog.enableLog(enable);
+    public static void init(Application application) {
+        //TODO
+        application.registerActivityLifecycleCallbacks(new Application.ActivityLifecycleCallbacks() {
+            @Override public void onActivityCreated(Activity activity, Bundle savedInstanceState) {
+
+            }
+
+            @Override public void onActivityStarted(Activity activity) {
+
+            }
+
+            @Override public void onActivityResumed(Activity activity) {
+
+            }
+
+            @Override public void onActivityPaused(Activity activity) {
+
+            }
+
+            @Override public void onActivityStopped(Activity activity) {
+
+            }
+
+            @Override public void onActivitySaveInstanceState(Activity activity, Bundle outState) {
+
+            }
+
+            @Override public void onActivityDestroyed(Activity activity) {
+
+            }
+        });
+    }
+
+    public static void bundle(Object component) {
+        //TODO
     }
 
     /**
@@ -102,6 +133,7 @@ public class AutoBundler {
     void internalRestore(Object component, Bundle savedInstanceState, @RestoreMode int restoreMode) {
         if (savedInstanceState == null) return;
 
+        //TODO cache annotations in a static map for each object
         for (Field field : component.getClass().getDeclaredFields()) {
             if (field.isAnnotationPresent(KeepState.class)) {
                 KeepState annotation = field.getAnnotation(KeepState.class);
@@ -194,7 +226,7 @@ public class AutoBundler {
                 boolean wasAccessible = iField.isAccessible();
                 iField.setAccessible(true);
                 ((IFieldHandler) iField.get(iObject)).storeValue(field, object, bundle);
-                TSLog.d(iObject.getClass().getSimpleName(), "Field saved: " + iField.getName());
+                Log.d(iObject.getClass().getSimpleName(), "Field saved: " + iField.getName());
                 if (!wasAccessible) {
                     iField.setAccessible(false);
                 }
@@ -209,7 +241,7 @@ public class AutoBundler {
                     Object iFieldHandler = iField.getType().newInstance();
                     ((IFieldHandler) iFieldHandler).readValue(field, object, bundle);
                     iField.set(iObject, iFieldHandler);
-                    TSLog.d(iObject.getClass().getSimpleName(), "Field restored: " + iField.getName());
+                    Log.d(iObject.getClass().getSimpleName(), "Field restored: " + iField.getName());
                 } catch (InstantiationException e) {
                     e.printStackTrace();
                     Log.e(iObject.getClass().getSimpleName(), "Cannot instantiate - " + e.getMessage());

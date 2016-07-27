@@ -3,36 +3,26 @@ package sk.teamsoft.sampleautobundler;
 import android.os.Bundle;
 import android.os.Parcel;
 import android.os.Parcelable;
-import android.support.design.widget.FloatingActionButton;
-import android.support.design.widget.Snackbar;
 import android.support.v7.widget.Toolbar;
-import android.view.View;
 import android.widget.EditText;
 
 import java.lang.reflect.Field;
 import java.util.ArrayList;
 
-import sk.teamsoft.autobundler.AutoBundler;
 import sk.teamsoft.autobundler.AutoBundlerActivity;
+import sk.teamsoft.autobundler.AutoBundlerConfig;
 import sk.teamsoft.autobundler.KeepState;
 import sk.teamsoft.autobundler.handlers.IFieldHandler;
 
 public class MainActivity extends AutoBundlerActivity {
 
-    @KeepState
-    int mId;
-    @KeepState
-    String mName;
-    @KeepState
-    double mValue;
-    @KeepState
-    DataObject mParcel;
-    @KeepState
-    CustomObject mCustom;
-    @KeepState
-    ArrayList<String> mArray;
-    @KeepState(mode = AutoBundler.MODE_ONRESTORE)
-    EditText mEdittext;
+    @KeepState int mId;
+    @KeepState String mName;
+    @KeepState double mValue;
+    @KeepState DataObject mParcel;
+    @KeepState CustomObject mCustom;
+    @KeepState ArrayList<String> mArray;
+    @KeepState(mode = AutoBundlerConfig.MODE_ONRESTORE) EditText mEdittext;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -52,19 +42,9 @@ public class MainActivity extends AutoBundlerActivity {
             mArray.add("First");
             mArray.add("Second");
         }
-
-        FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
-        fab.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG)
-                        .setAction("Action", null).show();
-            }
-        });
     }
 
     private static class DataObject implements Parcelable {
-
         int data;
 
         public static final Creator<DataObject> CREATOR = new Creator<DataObject>() {
@@ -99,7 +79,6 @@ public class MainActivity extends AutoBundlerActivity {
     }
 
     public static class CustomObject implements IFieldHandler {
-
         String data;
 
         //need this because of automatic instantiation within autobundler

@@ -1,1 +1,1 @@
-include ':sampleapp', ':autobundler'
+include ':sampleapp', ':autobundler', ':autobundler-compiler', ':autobundler-annotations'

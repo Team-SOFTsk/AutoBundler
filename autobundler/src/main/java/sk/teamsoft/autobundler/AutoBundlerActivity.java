@@ -11,7 +11,7 @@ public abstract class AutoBundlerActivity extends android.support.v7.app.AppComp
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         if (savedInstanceState != null) {
-            AutoBundler.restore(this, savedInstanceState, AutoBundler.MODE_ONCREATE);
+            AutoBundler.restore(this, savedInstanceState, AutoBundlerConfig.MODE_ONCREATE);
         }
     }
 
@@ -24,6 +24,6 @@ public abstract class AutoBundlerActivity extends android.support.v7.app.AppComp
     @Override
     protected void onRestoreInstanceState(Bundle savedInstanceState) {
         super.onRestoreInstanceState(savedInstanceState);
-        AutoBundler.restore(this, savedInstanceState, AutoBundler.MODE_ONRESTORE);
+        AutoBundler.restore(this, savedInstanceState, AutoBundlerConfig.MODE_ONRESTORE);
     }
 }
