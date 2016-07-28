@@ -5,6 +5,9 @@ import android.os.Bundle;
 import java.lang.reflect.Field;
 
 /**
+ * Implementation used to store and restore data from an object to bundle
+ * Can be used directly with own class type
+ *
  * @author Dusan Bartos
  */
 public interface IFieldHandler {

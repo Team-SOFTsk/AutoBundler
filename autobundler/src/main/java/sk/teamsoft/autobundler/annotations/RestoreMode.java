@@ -1,7 +1,9 @@
-package sk.teamsoft.autobundler;
+package sk.teamsoft.autobundler.annotations;
 
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
+
+import sk.teamsoft.autobundler.AutoBundler;
 
 /**
  * @author Dusan Bartos

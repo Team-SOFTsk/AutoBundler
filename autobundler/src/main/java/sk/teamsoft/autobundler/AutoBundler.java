@@ -9,6 +9,8 @@ import android.widget.EditText;
 import java.io.Serializable;
 import java.lang.reflect.Field;
 
+import sk.teamsoft.autobundler.annotations.KeepState;
+import sk.teamsoft.autobundler.annotations.RestoreMode;
 import sk.teamsoft.autobundler.handlers.BooleanHandler;
 import sk.teamsoft.autobundler.handlers.BundleHandler;
 import sk.teamsoft.autobundler.handlers.ByteHandler;
@@ -32,8 +34,8 @@ import sk.teamsoft.autobundler.handlers.StringHandler;
 /**
  * @author Dusan Bartos
  */
-public class AutoBundler {
-    private static final String TAG = AutoBundler.class.getSimpleName();
+public final class AutoBundler {
+    private static final String TAG = "AutoBundler";
 
     public static final int MODE_ONCREATE = 1;
     public static final int MODE_ONRESTORE = 2;
@@ -42,7 +44,6 @@ public class AutoBundler {
     private static IFieldHandler sEmptyHandler;
 
     static {
-        TSLog.enableLog(false);
         sEmptyHandler = new IFieldHandler() {
             @Override
             public void storeValue(Field field, Object object, Bundle bundle) throws IllegalAccessException {
@@ -54,16 +55,12 @@ public class AutoBundler {
         };
     }
 
-    public static void enableDebug(boolean enable) {
-        TSLog.enableLog(enable);
-    }
-
     /**
      * @param component          component instance
      * @param savedInstanceState saved state
      * @param mode               restore mode
      */
-    protected static void restore(Object component, Bundle savedInstanceState, @RestoreMode int mode) {
+    public static void restore(Object component, Bundle savedInstanceState, @RestoreMode int mode) {
         getInstance().internalRestore(component, savedInstanceState, mode);
     }
 
@@ -71,7 +68,7 @@ public class AutoBundler {
      * @param component component instance
      * @param outState  state
      */
-    protected static void save(Object component, Bundle outState) {
+    public static void save(Object component, Bundle outState) {
         getInstance().internalSave(component, outState);
     }
 
@@ -194,7 +191,7 @@ public class AutoBundler {
                 boolean wasAccessible = iField.isAccessible();
                 iField.setAccessible(true);
                 ((IFieldHandler) iField.get(iObject)).storeValue(field, object, bundle);
-                TSLog.d(iObject.getClass().getSimpleName(), "Field saved: " + iField.getName());
+                Log.d(iObject.getClass().getSimpleName(), "Field saved: " + iField.getName());
                 if (!wasAccessible) {
                     iField.setAccessible(false);
                 }
@@ -209,7 +206,7 @@ public class AutoBundler {
                     Object iFieldHandler = iField.getType().newInstance();
                     ((IFieldHandler) iFieldHandler).readValue(field, object, bundle);
                     iField.set(iObject, iFieldHandler);
-                    TSLog.d(iObject.getClass().getSimpleName(), "Field restored: " + iField.getName());
+                    Log.d(iObject.getClass().getSimpleName(), "Field restored: " + iField.getName());
                 } catch (InstantiationException e) {
                     e.printStackTrace();
                     Log.e(iObject.getClass().getSimpleName(), "Cannot instantiate - " + e.getMessage());

@@ -7,20 +7,35 @@ Android AutoBundler library
 ### Description
 AutoBundler is a library for Android applications, which removes boilerplate code from your
 activities and fragments. The library handles typical actions with saving instance state.
-So overriding `onSaveInstanceState` and `onRestoreInstanceState` is a history now.
+So implementing your own `onSaveInstanceState` and `onRestoreInstanceState` with hundreds of LOC is a history now.
 
 ### Usage
-All you need to do to make AutoBundler work, is to inherit from `AutoBundlerActivity`, 
-`AutoBundlerFragment` or `AutoBundlerDialogFragment` classes and add annotations to specified fields.
+All you need to do to make AutoBundler work, is to add annotations to specified fields. Then you can call
+store/restore actions with one line for all your properties.
 That's all.
 
-    public class MainActivity extends AutoBundlerActivity {
-        @KeepState
-        int mId;
-        @KeepState
-        String mName;
-        @KeepState
-        double mValue;
+    public class MainActivity extends Activity {
+        @KeepState int mId;
+        @KeepState String mName;
+        @KeepState double mValue;
+        @KeepState(mode = AutoBundler.MODE_ONRESTORE) EditText mEditText;
+        
+        @Override protected void onCreate(Bundle savedInstanceState) {
+            super.onCreate(savedInstanceState);
+            setContentView(R.layout.my_layout);
+            AutoBundler.restore(this, savedInstanceState, AutoBundler.MODE_ONCREATE);
+            ...
+        }
+        
+        @Override protected void onRestoreInstanceState(Bundle savedInstanceState) {
+            super.onRestoreInstanceState(savedInstanceState);
+            AutoBundler.restore(this, savedInstanceState, AutoBundler.MODE_ONRESTORE);
+        }
+        
+        @Override protected void onSaveInstanceState(Bundle outState) {
+            AutoBundler.save(this, outState);
+            super.onSaveInstanceState(outState);
+        }
     }
     
     
@@ -28,10 +43,8 @@ AutoBundler supports basic classes, but you can also define your own class, whic
 implement `Parcelable` or `IFieldHandler` interface. You can then specify the exact algorithm
 used to save and restore object values.
  
-    @KeepState
-    DataObject mParcel;
-    @KeepState
-    CustomObject mCustom;
+    @KeepState DataObject mParcel;
+    @KeepState CustomObject mCustom;
     
     ...
     

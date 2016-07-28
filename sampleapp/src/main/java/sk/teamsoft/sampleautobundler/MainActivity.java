@@ -3,68 +3,60 @@ package sk.teamsoft.sampleautobundler;
 import android.os.Bundle;
 import android.os.Parcel;
 import android.os.Parcelable;
-import android.support.design.widget.FloatingActionButton;
-import android.support.design.widget.Snackbar;
+import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
-import android.view.View;
 import android.widget.EditText;
 
 import java.lang.reflect.Field;
 import java.util.ArrayList;
 
 import sk.teamsoft.autobundler.AutoBundler;
-import sk.teamsoft.autobundler.AutoBundlerActivity;
-import sk.teamsoft.autobundler.KeepState;
+import sk.teamsoft.autobundler.annotations.KeepState;
 import sk.teamsoft.autobundler.handlers.IFieldHandler;
 
-public class MainActivity extends AutoBundlerActivity {
+public class MainActivity extends AppCompatActivity {
 
-    @KeepState
-    int mId;
-    @KeepState
-    String mName;
-    @KeepState
-    double mValue;
-    @KeepState
-    DataObject mParcel;
-    @KeepState
-    CustomObject mCustom;
-    @KeepState
-    ArrayList<String> mArray;
-    @KeepState(mode = AutoBundler.MODE_ONRESTORE)
-    EditText mEdittext;
+    @KeepState int id;
+    @KeepState String name;
+    @KeepState double value;
+    @KeepState DataObject dataObject;
+    @KeepState CustomObject customObject;
+    @KeepState ArrayList<String> strings;
+    @KeepState(mode = AutoBundler.MODE_ONRESTORE) EditText editText;
 
-    @Override
-    protected void onCreate(Bundle savedInstanceState) {
+    @Override protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
-        mEdittext = (EditText) findViewById(R.id.edittext);
         setSupportActionBar(toolbar);
 
-        if (savedInstanceState == null) {
-            mId = 12;
-            mName = "Test me";
-            mValue = 15.5555;
-            mParcel = new DataObject(15);
-            mCustom = new CustomObject("datadata");
-            mArray = new ArrayList<>();
-            mArray.add("First");
-            mArray.add("Second");
-        }
+        editText = (EditText) findViewById(R.id.edittext);
 
-        FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
-        fab.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG)
-                        .setAction("Action", null).show();
-            }
-        });
+        AutoBundler.restore(this, savedInstanceState, AutoBundler.MODE_ONCREATE);
+
+        if (savedInstanceState == null) {
+            id = 12;
+            name = "Test me";
+            value = 15.5555;
+            dataObject = new DataObject(15);
+            customObject = new CustomObject("datadata");
+            strings = new ArrayList<>();
+            strings.add("First");
+            strings.add("Second");
+        }
+    }
+
+    @Override protected void onRestoreInstanceState(Bundle savedInstanceState) {
+        super.onRestoreInstanceState(savedInstanceState);
+        AutoBundler.restore(this, savedInstanceState, AutoBundler.MODE_ONRESTORE);
+    }
+
+    @Override protected void onSaveInstanceState(Bundle outState) {
+        AutoBundler.save(this, outState);
+        super.onSaveInstanceState(outState);
     }
 
     private static class DataObject implements Parcelable {
-
         int data;
 
         public static final Creator<DataObject> CREATOR = new Creator<DataObject>() {
@@ -99,7 +91,6 @@ public class MainActivity extends AutoBundlerActivity {
     }
 
     public static class CustomObject implements IFieldHandler {
-
         String data;
 
         //need this because of automatic instantiation within autobundler
