@@ -10,6 +10,8 @@ import android.widget.EditText;
 
 import java.io.Serializable;
 import java.lang.reflect.Field;
+import java.util.Collection;
+import java.util.Collections;
 
 import sk.teamsoft.autobundler.handlers.BooleanHandler;
 import sk.teamsoft.autobundler.handlers.BundleHandler;
@@ -56,7 +58,8 @@ public final class AutoBundler {
         //TODO
         application.registerActivityLifecycleCallbacks(new Application.ActivityLifecycleCallbacks() {
             @Override public void onActivityCreated(Activity activity, Bundle savedInstanceState) {
-
+                //TODO process restore from saved instance here (+propagate to allowed fragments)
+                restore(activity, savedInstanceState, AutoBundlerConfig.MODE_ONCREATE);
             }
 
             @Override public void onActivityStarted(Activity activity) {
@@ -76,7 +79,8 @@ public final class AutoBundler {
             }
 
             @Override public void onActivitySaveInstanceState(Activity activity, Bundle outState) {
-
+                //TODO process save instance here (+propagate to allowed fragments)
+                save(activity, outState);
             }
 
             @Override public void onActivityDestroyed(Activity activity) {
@@ -89,12 +93,17 @@ public final class AutoBundler {
         //TODO
     }
 
+    static Collection<Object> findFragmentTargets() {
+        //TODO get fragment targets
+        return Collections.emptyList();
+    }
+
     /**
      * @param component          component instance
      * @param savedInstanceState saved state
      * @param mode               restore mode
      */
-    protected static void restore(Object component, Bundle savedInstanceState, @RestoreMode int mode) {
+    static void restore(Object component, Bundle savedInstanceState, @RestoreMode int mode) {
         getInstance().internalRestore(component, savedInstanceState, mode);
     }
 
@@ -102,7 +111,7 @@ public final class AutoBundler {
      * @param component component instance
      * @param outState  state
      */
-    protected static void save(Object component, Bundle outState) {
+    static void save(Object component, Bundle outState) {
         getInstance().internalSave(component, outState);
     }
 
