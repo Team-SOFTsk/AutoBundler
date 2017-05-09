@@ -1,6 +1,8 @@
 package sk.teamsoft;
 
+import android.os.Bundle;
 import android.os.Parcelable;
+import android.support.annotation.Keep;
 
 import com.google.auto.service.AutoService;
 import com.squareup.javapoet.AnnotationSpec;
@@ -38,8 +40,9 @@ import sk.teamsoft.autobundler.KeepState;
 import static javax.lang.model.element.Modifier.FINAL;
 import static javax.lang.model.element.Modifier.PUBLIC;
 
+@SuppressWarnings("unused")
 @AutoService(Processor.class)
-@SupportedSourceVersion(SourceVersion.RELEASE_8)
+@SupportedSourceVersion(SourceVersion.RELEASE_7)
 public class AutoBundlerProcessor extends AbstractProcessor {
 
     private Elements elementUtils;
@@ -57,7 +60,6 @@ public class AutoBundlerProcessor extends AbstractProcessor {
     @Override public Set<String> getSupportedAnnotationTypes() {
         final Set<String> types = new LinkedHashSet<>();
         types.add(KeepState.class.getCanonicalName());
-        //        types.add(RestoreMode.class.getCanonicalName());
         return types;
     }
 
@@ -69,7 +71,6 @@ public class AutoBundlerProcessor extends AbstractProcessor {
 
     private void processStatefulElements(RoundEnvironment env) {
         if (generatedElements) {
-            //            System.out.println("elements already processed");
             return;
         }
 
@@ -80,16 +81,18 @@ public class AutoBundlerProcessor extends AbstractProcessor {
             //map of class containers [key] and processor elements [values]
             final Map<Element, List<Element>> containerMap = new HashMap<>();
 
-            env.getElementsAnnotatedWith(KeepState.class).forEach(element -> {
+            Set<? extends Element> elements = env.getElementsAnnotatedWith(KeepState.class);
+            for (Element element : elements) {
                 List<Element> containerElems = containerMap.get(element.getEnclosingElement());
                 if (containerElems == null) {
                     containerElems = new ArrayList<>();
                     containerMap.put(element.getEnclosingElement(), containerElems);
                 }
                 containerElems.add(element);
-            });
+            }
 
-            containerMap.forEach((container, elements) -> {
+            for (Element container : containerMap.keySet()) {
+                List<Element> els = containerMap.get(container);
                 final String packageName = container.getEnclosingElement().toString();
                 final String fileName = container.getSimpleName().toString();
 
@@ -100,10 +103,11 @@ public class AutoBundlerProcessor extends AbstractProcessor {
                         TypeName.get(container.asType()));
 
                 final AnnotationSpec.Builder suppress = AnnotationSpec.builder(SuppressWarnings.class)
-                        .addMember("value", "\"unchecked\"");
+                        .addMember("value", "\"unchecked,unused\"");
 
                 final TypeSpec.Builder result = TypeSpec.classBuilder(fileName + "$$StateKeeper")
                         .addSuperinterface(keeperType)
+                        .addAnnotation(Keep.class)
                         .addAnnotation(suppress.build())
                         .addModifiers(PUBLIC, FINAL);
 
@@ -124,16 +128,13 @@ public class AutoBundlerProcessor extends AbstractProcessor {
                 //storeBlock.add("super.store();");
                 //restoreBlock.add("super.restore();");
 
-                elements.forEach(element -> {
-                    final KeepState annotation = element.getAnnotation(KeepState.class);
-
-                    storeBlock.add(resolveStoreCode(element) + "\n");
-                    /*restoreBlock.add("target." + element + " = (" + element.asType().toString() + ") " +
-                            "bundle.get(\"" + element.getSimpleName() + "\");  //mode=" + annotation.mode() + "\n");*/
+                for (Element el : els) {
+                    final KeepState annotation = el.getAnnotation(KeepState.class);
+                    storeBlock.add(resolveStoreCode(el) + "\n");
                     restoreBlock.add("if (mode==" + annotation.mode() + ")" +
-                            " target." + element + " = (" + element.asType().toString() + ") " +
-                            "bundle.get(\"" + element.getSimpleName() + "\");  //mode=" + annotation.mode() + "\n");
-                });
+                            " target." + el + " = (" + el.asType().toString() + ") " +
+                            "bundle.get(\"" + el.getSimpleName() + "\");\n");
+                }
 
                 storeMethod.addCode(storeBlock.build());
                 restoreMethod.addCode(restoreBlock.build());
@@ -143,7 +144,7 @@ public class AutoBundlerProcessor extends AbstractProcessor {
 
                 try {
                     final JavaFile javaFile = JavaFile.builder(packageName, result.build())
-                            .addFileComment("Generated Autobundler code. Do not modify!")
+                            .addFileComment("Generated AutoBundler code. Do not modify!")
                             .build();
 
                     System.out.println("write file " + fileName + "$$StateKeeper");
@@ -152,7 +153,7 @@ public class AutoBundlerProcessor extends AbstractProcessor {
                     e.printStackTrace();
                     System.out.println("Cannot process " + container.toString() + ": " + e.getClass().getSimpleName() + "[" + e.getMessage() + "]");
                 }
-            });
+            }
         } catch (Exception e) {
             e.printStackTrace();
             System.out.println("Cannot process elements: " + e.getClass().getSimpleName() + "[" + e.getMessage() + "]");
@@ -164,7 +165,11 @@ public class AutoBundlerProcessor extends AbstractProcessor {
     }
 
     private String resolveStoreAction(Element element) {
-        if (isAssignable(element, CharSequence.class)) {
+        if (isAssignable(element, String.class)) {
+            return "putString";
+        } else if (isAssignable(element, String[].class)) {
+            return "putStringArray";
+        } else if (isAssignable(element, CharSequence.class)) {
             return "putCharSequence";
         } else if (isAssignable(element, CharSequence[].class)) {
             return "putCharSequenceArray";
@@ -182,6 +187,8 @@ public class AutoBundlerProcessor extends AbstractProcessor {
             return "putLong";
         } else if (isAssignable(element, Byte.class)) {
             return "putByte";
+        } else if (isAssignable(element, Bundle.class)) {
+            return "putBundle";
         } else if (isAssignable(element, Parcelable.class)) {
             return "putParcelable";
         } else if (isAssignable(element, Parcelable[].class)) {
@@ -190,22 +197,16 @@ public class AutoBundlerProcessor extends AbstractProcessor {
             return "putSerializable";
         }
 
-        throw new IllegalStateException("No bundle method found for type " + element.asType());
+        throw new IllegalStateException("No bundle storing method found for type " + element.asType());
     }
 
     private boolean isAssignable(Element element, Class clz) {
-        //        System.out.println("isAssignable elem=" + element + " cls=" + clz.getCanonicalName());
         final TypeMirror secondType;
         if (clz.isArray()) {
             secondType = typeUtils.getArrayType(elementUtils.getTypeElement(clz.getComponentType().getCanonicalName()).asType());
         } else {
-            TypeElement typeElement = elementUtils.getTypeElement(clz.getCanonicalName());
-            secondType = typeElement.asType();
+            secondType = elementUtils.getTypeElement(clz.getCanonicalName()).asType();
         }
-        //        System.out.println("isAssignable type=" + secondType);
-
-        final TypeMirror a = element.asType();
-        //        System.out.println("isAssignable a=" + a + " b=" + secondType);
-        return typeUtils.isAssignable(a, secondType);
+        return typeUtils.isAssignable(element.asType(), secondType);
     }
 }

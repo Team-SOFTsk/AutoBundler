@@ -13,11 +13,6 @@
     tools:showIn="@layout/activity_main"
     tools:context=".MainActivity">
 
-    <TextView
-        android:text="Hello World!"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content" />
-
     <android.support.v7.widget.AppCompatEditText
         android:id="@+id/edittext"
         android:layout_width="match_parent"
