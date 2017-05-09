@@ -1,11 +1,14 @@
 package sk.teamsoft.sampleautobundler;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.os.Parcel;
 import android.os.Parcelable;
+import android.support.design.widget.FloatingActionButton;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
+import android.view.View;
 
 import java.util.ArrayList;
 
@@ -31,6 +34,13 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
+
+        FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.btn_add);
+        fab.setOnClickListener(new View.OnClickListener() {
+            @Override public void onClick(View v) {
+                startActivity(new Intent(MainActivity.this, NonKeeperActivity.class));
+            }
+        });
 
         if (savedInstanceState == null) {
             Log.d(TAG, "init");

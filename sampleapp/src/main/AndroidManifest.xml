@@ -20,7 +20,7 @@
             </intent-filter>
         </activity>
         <activity
-            android:name=".fakeactivity"
+            android:name=".NonKeeperActivity"
             android:label="@string/title_activity_fakeactivity"
             android:theme="@style/AppTheme.NoActionBar">
         </activity>
