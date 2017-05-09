@@ -8,9 +8,9 @@ for (File file : sdkHandler.sdkLoader.repositories) {
     }
 }
 
-sourceCompatibility = rootProject.ext.sourceCompatibilityVersion
-targetCompatibility = rootProject.ext.targetCompatibilityVersion
-
 dependencies {
     compile deps.supportAnnotations
 }
+
+sourceCompatibility = "1.8"
+targetCompatibility = "1.8"

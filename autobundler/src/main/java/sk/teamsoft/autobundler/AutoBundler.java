@@ -1,7 +1,5 @@
 package sk.teamsoft.autobundler;
 
-import android.app.Activity;
-import android.app.Application;
 import android.os.Bundle;
 import android.os.Parcelable;
 import android.util.Log;
@@ -10,8 +8,8 @@ import android.widget.EditText;
 
 import java.io.Serializable;
 import java.lang.reflect.Field;
-import java.util.Collection;
-import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
 
 import sk.teamsoft.autobundler.handlers.BooleanHandler;
 import sk.teamsoft.autobundler.handlers.BundleHandler;
@@ -39,6 +37,8 @@ import sk.teamsoft.autobundler.handlers.StringHandler;
 public final class AutoBundler {
     private static final String TAG = "AutoBundler";
 
+    private static final Map<Class, StateKeeper> KEEPER_CACHE = new HashMap<>();
+
     private static AutoBundler sInstance;
     private static IFieldHandler sEmptyHandler;
 
@@ -52,50 +52,6 @@ public final class AutoBundler {
             public void readValue(Field field, Object object, Bundle bundle) throws IllegalAccessException {
             }
         };
-    }
-
-    public static void init(Application application) {
-        //TODO
-        application.registerActivityLifecycleCallbacks(new Application.ActivityLifecycleCallbacks() {
-            @Override public void onActivityCreated(Activity activity, Bundle savedInstanceState) {
-                //TODO process restore from saved instance here (+propagate to allowed fragments)
-                restore(activity, savedInstanceState, AutoBundlerConfig.MODE_ONCREATE);
-            }
-
-            @Override public void onActivityStarted(Activity activity) {
-
-            }
-
-            @Override public void onActivityResumed(Activity activity) {
-
-            }
-
-            @Override public void onActivityPaused(Activity activity) {
-
-            }
-
-            @Override public void onActivityStopped(Activity activity) {
-
-            }
-
-            @Override public void onActivitySaveInstanceState(Activity activity, Bundle outState) {
-                //TODO process save instance here (+propagate to allowed fragments)
-                save(activity, outState);
-            }
-
-            @Override public void onActivityDestroyed(Activity activity) {
-
-            }
-        });
-    }
-
-    public static void bundle(Object component) {
-        //TODO
-    }
-
-    static Collection<Object> findFragmentTargets() {
-        //TODO get fragment targets
-        return Collections.emptyList();
     }
 
     /**
@@ -112,15 +68,14 @@ public final class AutoBundler {
      * @param outState  state
      */
     static void save(Object component, Bundle outState) {
-        getInstance().internalSave(component, outState);
+        getInstance().internalStore(component, outState);
     }
 
     /**
      * Gets singleton instance
-     *
      * @return singleton
      */
-    static AutoBundler getInstance() {
+    private static AutoBundler getInstance() {
         if (sInstance == null) {
             synchronized (AutoBundler.class) {
                 if (sInstance == null) {
@@ -131,77 +86,49 @@ public final class AutoBundler {
         return sInstance;
     }
 
-    AutoBundler() {
-    }
+    private AutoBundler() {}
 
-    /**
-     * @param component          component instance
-     * @param savedInstanceState saved state
-     * @param restoreMode        restore mode
-     */
-    void internalRestore(Object component, Bundle savedInstanceState, @RestoreMode int restoreMode) {
-        if (savedInstanceState == null) return;
-
-        //TODO cache annotations in a static map for each object
-        for (Field field : component.getClass().getDeclaredFields()) {
-            if (field.isAnnotationPresent(KeepState.class)) {
-                KeepState annotation = field.getAnnotation(KeepState.class);
-                if (annotation.mode() == restoreMode) {
-                    boolean wasAccessible = field.isAccessible();
-                    field.setAccessible(true);
-                    try {
-                        getTypeHandler(field, component).readValue(field, component, savedInstanceState);
-                    } catch (IllegalAccessException e) {
-                        e.printStackTrace();
-                        Log.e(TAG, "Cannot access field " + field.getName());
-                    }
-                    if (!wasAccessible) {
-                        field.setAccessible(false);
-                    }
-                }
-            }
+    private void internalStore(Object component, Bundle outState) {
+        try {
+            Class<?> keeper = Class.forName(component.getClass().getName() + "$$StateKeeper");
+            keeper(keeper).store(component, outState);
+        } catch (Exception e) {
+            e.printStackTrace();
         }
     }
 
-    /**
-     * @param component component instance
-     * @param outState  state
-     */
-    void internalSave(Object component, Bundle outState) {
-        if (outState == null) return;
-
-        for (Field field : component.getClass().getDeclaredFields()) {
-            if (field.isAnnotationPresent(KeepState.class)) {
-                boolean wasAccessible = field.isAccessible();
-                field.setAccessible(true);
-                try {
-                    getTypeHandler(field, component).storeValue(field, component, outState);
-                } catch (IllegalAccessException e) {
-                    e.printStackTrace();
-                    Log.e(TAG, "Cannot access field " + field.getName());
-                }
-                if (!wasAccessible) {
-                    field.setAccessible(false);
-                }
-            }
+    private void internalRestore(Object component, Bundle state, @RestoreMode int mode) {
+        try {
+            Class<?> keeper = Class.forName(component.getClass().getName() + "$$StateKeeper");
+            keeper(keeper).restore(component, state, mode);
+        } catch (Exception e) {
+            e.printStackTrace();
         }
+    }
+
+    private StateKeeper keeper(Class<?> clz) throws IllegalAccessException, InstantiationException {
+        if (KEEPER_CACHE.containsKey(clz)) {
+            return KEEPER_CACHE.get(clz);
+        }
+        StateKeeper o = (StateKeeper) clz.newInstance();
+        KEEPER_CACHE.put(clz, o);
+        return o;
     }
 
     /**
      * @param iField  field
      * @param iObject component instance
-     *
      * @return bundle handler for exact type
      *
      * @throws IllegalAccessException
      */
     private IFieldHandler getTypeHandler(final Field iField, final Object iObject)
             throws IllegalAccessException {
+        if (String.class.isAssignableFrom(iField.getType())) return new StringHandler();
+        if (String[].class.isAssignableFrom(iField.getType())) return new StringArrayHandler();
         if (CharSequence.class.isAssignableFrom(iField.getType())) return new CharSequenceHandler();
         if (CharSequence[].class.isAssignableFrom(iField.getType()))
             return new CharSequenceArrayHandler();
-        if (String.class.isAssignableFrom(iField.getType())) return new StringHandler();
-        if (String[].class.isAssignableFrom(iField.getType())) return new StringArrayHandler();
         if (int.class.isAssignableFrom(iField.getType())) return new IntegerHandler();
         if (Integer.class.isAssignableFrom(iField.getType())) return new IntegerHandler();
         if (int[].class.isAssignableFrom(iField.getType())) return new IntegerArrayHandler();
