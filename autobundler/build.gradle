@@ -1,32 +1,5 @@
 apply plugin: 'com.android.library'
 
-final LIBRARY_NAME = 'autobundler'
-
-/*ext {
-    bintrayRepo = 'maven'
-    bintrayName = LIBRARY_NAME
-    bintrayOrg = ORGANIZATION_NAME
-
-    publishedGroupId = GROUP
-    libraryName = LIBRARY_NAME
-    artifact = POM_ARTIFACT_ID
-
-    libraryDescription = POM_DESCRIPTION
-
-    siteUrl = POM_SCM_URL
-    gitUrl = POM_SCM_CONNECTION
-
-    libraryVersion = VERSION_NAME
-
-    developerId = POM_DEVELOPER_ID
-    developerName = POM_DEVELOPER_NAME
-    developerEmail = POM_DEVELOPER_EMAIL
-
-    licenseName = POM_LICENCE_NAME
-    licenseUrl = POM_LICENCE_URL
-    allLicenses = ["Apache-2.0"]
-}*/
-
 android {
     compileSdkVersion rootProject.ext.compileSdkVersion
     buildToolsVersion rootProject.ext.buildToolsVersion
@@ -39,12 +12,7 @@ android {
 dependencies {
     compile project(':autobundler-annotations')
     compile deps.supportAnnotations
-
-    testCompile 'junit:junit:4.12'
-//    compile 'com.android.support:support-v4:25.3.1'
-    compile 'com.android.support:support-annotations:25.3.1'
-    compile 'org.reflections:reflections:0.9.10'
+    testCompile deps.junit
 }
 
-//apply from: '../install.gradle'
-//apply from: '../bintray.gradle'
+apply from: '../gradle/upload.gradle'
